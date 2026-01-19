@@ -1,9 +1,9 @@
-#big-data-praktikum-4
+# big-data-praktikum-4
 
 ## IMPOR LIBRARY YANG DIPERLUKAN
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType, FloatType
-from pyspark.sql.functions import col, count, when, isnull, mean, lower, to_date, year, month, quarter
-from pyspark.ml.feature import Bucketizer, VectorAssembler, MinMaxScaler, StringIndexer, OneHotEncoder
+- from pyspark.sql.types import StructType, StructField, IntegerType, StringType, FloatType
+- from pyspark.sql.functions import col, count, when, isnull, mean, lower, to_date, year, month, quarter
+<p> from pyspark.ml.feature import Bucketizer, VectorAssembler, MinMaxScaler, StringIndexer, OneHotEncoder
 from pyspark.ml import Pipeline
 import pyspark.sql.functions as F
 
