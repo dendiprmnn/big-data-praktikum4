@@ -1,21 +1,19 @@
-# big-data-praktikum4
+#big-data-praktikum-4
 
-## Tugas
-
-# ==================== IMPOR LIBRARY YANG DIPERLUKAN ====================
+## IMPOR LIBRARY YANG DIPERLUKAN
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, FloatType
 from pyspark.sql.functions import col, count, when, isnull, mean, lower, to_date, year, month, quarter
 from pyspark.ml.feature import Bucketizer, VectorAssembler, MinMaxScaler, StringIndexer, OneHotEncoder
 from pyspark.ml import Pipeline
 import pyspark.sql.functions as F
 
-# ==================== TUGAS  ====================
+## TUGAS PRA-PEMROSESAN DATA PRODUK ELEKTRONIK 
 
 print("=" * 70)
 print("TUGAS: PRA-PEMROSESAN DATA PRODUK ELEKTRONIK")
 print("=" * 70)
 
-# 1. MEMBUAT DATAFRAME AWAL
+### 1. MEMBUAT DATAFRAME AWAL
 print("\n1. DATASET AWAL:")
 print("-" * 50)
 
@@ -45,23 +43,23 @@ print("DataFrame awal:")
 df_tugas.show()
 df_tugas.printSchema()
 
-# 2. DATA CLEANING
+### 2. DATA CLEANING
 print("\n2. DATA CLEANING")
 print("-" * 50)
 
-# a. Identifikasi Missing Values
+#### a. Identifikasi Missing Values
 print("\na. Identifikasi Missing Values:")
 missing_counts = df_tugas.select([count(when(isnull(c), c)).alias(c) for c in df_tugas.columns])
 missing_counts.show()
 
-# b. Imputasi Missing Values
+#### b. Imputasi Missing Values
 print("\nb. Imputasi Missing Values:")
 
-# Untuk kolom 'terjual' (numerik), kita isi dengan median
+#### Untuk kolom 'terjual' (numerik), kita isi dengan median
 median_terjual = df_tugas.approxQuantile("terjual", [0.5], 0.01)[0]
 print(f"Median terjual: {median_terjual}")
 
-# Untuk kolom 'rating' (numerik), kita isi dengan rata-rata rating yang valid
+#### Untuk kolom 'rating' (numerik), kita isi dengan rata-rata rating yang valid
 mean_rating = df_tugas.filter(df_tugas["rating"] > 0).select(mean("rating")).collect()[0][0]
 print(f"Rata-rata rating valid: {mean_rating}")
 
@@ -73,7 +71,7 @@ df_clean = df_tugas.na.fill({
 print("Data setelah imputasi missing values:")
 df_clean.show()
 
-# c. Hapus Data Duplikat
+#### c. Hapus Data Duplikat
 print("\nc. Menghapus Data Duplikat:")
 print(f"Jumlah baris sebelum hapus duplikat: {df_clean.count()}")
 
@@ -83,7 +81,7 @@ print(f"Jumlah baris setelah hapus duplikat: {df_clean.count()}")
 print("Data setelah hapus duplikat:")
 df_clean.show()
 
-# d. Perbaiki Rating Tidak Valid (negatif)
+#### d. Perbaiki Rating Tidak Valid (negatif)
 print("\nd. Perbaiki Rating Tidak Valid:")
 print("Rating sebelum perbaikan:")
 df_clean.select("id_produk", "rating").show()
@@ -96,7 +94,7 @@ df_clean = df_clean.withColumn(
 print("Rating setelah perbaikan (rating negatif diubah menjadi 0):")
 df_clean.select("id_produk", "rating").show()
 
-# e. Standarisasi Kolom status_stok
+#### e. Standarisasi Kolom status_stok
 print("\ne. Standarisasi Kolom status_stok:")
 print("Status stok sebelum standarisasi:")
 df_clean.select("id_produk", "status_stok").show()
@@ -109,14 +107,14 @@ df_clean = df_clean.withColumn(
 print("Status stok setelah standarisasi (huruf kecil semua):")
 df_clean.select("id_produk", "status_stok").show()
 
-# 3. DATA TRANSFORMASI
+### 3. DATA TRANSFORMASI
 print("\n3. DATA TRANSFORMASI")
 print("-" * 50)
 
-# a. Diskretisasi Harga (Binning)
+#### a. Diskretisasi Harga (Binning)
 print("\na. Diskretisasi Harga (Binning):")
 
-# Definisikan kategori harga
+#### Definisikan kategori harga
 splits_harga = [0, 5000000, 10000000, float('inf')]
 
 bucketizer_harga = Bucketizer(
@@ -127,7 +125,7 @@ bucketizer_harga = Bucketizer(
 
 df_transformed = bucketizer_harga.transform(df_clean)
 
-# Tambahkan label kategori
+#### Tambahkan label kategori
 from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType
 
@@ -143,33 +141,33 @@ df_transformed = df_transformed.withColumn("kategori_harga_label", map_udf(col("
 print("Data setelah diskretisasi harga:")
 df_transformed.select("id_produk", "nama_produk", "harga", "kategori_harga", "kategori_harga_label").show()
 
-# b. Normalisasi Numerik (Min-Max Scaling)
+#### b. Normalisasi Numerik (Min-Max Scaling)
 print("\nb. Normalisasi Kolom Numerik (Min-Max Scaling):")
 
-# Kolom numerik yang akan dinormalisasi
+#### Kolom numerik yang akan dinormalisasi
 numeric_cols = ["harga", "rating", "terjual"]
 
-# Buat vektor dari kolom numerik
+#### Buat vektor dari kolom numerik
 assembler = VectorAssembler(inputCols=numeric_cols, outputCol="features_numeric")
 
-# Normalisasi dengan MinMaxScaler
+#### Normalisasi dengan MinMaxScaler
 scaler = MinMaxScaler(inputCol="features_numeric", outputCol="features_normalized")
 
-# Pipeline untuk assembler dan scaler
+#### Pipeline untuk assembler dan scaler
 pipeline = Pipeline(stages=[assembler, scaler])
 
-# Fit dan transform
+#### Fit dan transform
 scaler_model = pipeline.fit(df_transformed)
 df_transformed = scaler_model.transform(df_transformed)
 
 print("Data setelah normalisasi (5 baris pertama):")
 df_transformed.select("id_produk", "harga", "rating", "terjual", "features_normalized").show(5)
 
-# 4. FEATURE ENGINEERING
+### 4. FEATURE ENGINEERING
 print("\n4. FEATURE ENGINEERING")
 print("-" * 50)
 
-# a. Ekstraksi Fitur dari Tanggal
+#### a. Ekstraksi Fitur dari Tanggal
 print("\na. Ekstraksi Fitur dari Tanggal:")
 
 df_engineered = df_transformed.withColumn(
@@ -177,7 +175,7 @@ df_engineered = df_transformed.withColumn(
     to_date(col("tgl_rilis"), "yyyy-MM-dd")
 )
 
-# Ekstrak tahun, bulan, dan kuartal
+#### Ekstrak tahun, bulan, dan kuartal
 df_engineered = df_engineered.withColumn("tahun_rilis", year(col("tgl_rilis_timestamp")))
 df_engineered = df_engineered.withColumn("bulan_rilis", month(col("tgl_rilis_timestamp")))
 df_engineered = df_engineered.withColumn("kuartal_rilis", quarter(col("tgl_rilis_timestamp")))
@@ -185,20 +183,20 @@ df_engineered = df_engineered.withColumn("kuartal_rilis", quarter(col("tgl_rilis
 print("Data setelah ekstraksi fitur tanggal:")
 df_engineered.select("id_produk", "tgl_rilis", "tahun_rilis", "bulan_rilis", "kuartal_rilis").show()
 
-# b. One-Hot Encoding untuk Kategori dan Status Stok
+#### b. One-Hot Encoding untuk Kategori dan Status Stok
 print("\nb. One-Hot Encoding untuk Variabel Kategorikal:")
 
-# StringIndexer untuk kategori dan status_stok
+#### StringIndexer untuk kategori dan status_stok
 indexer_kategori = StringIndexer(inputCol="kategori", outputCol="kategori_index")
 indexer_stok = StringIndexer(inputCol="status_stok", outputCol="status_stok_index")
 
-# OneHotEncoder
+#### OneHotEncoder
 encoder = OneHotEncoder(
     inputCols=["kategori_index", "status_stok_index"],
     outputCols=["kategori_ohe", "status_stok_ohe"]
 )
 
-# Pipeline untuk encoding
+#### Pipeline untuk encoding
 pipeline_encode = Pipeline(stages=[indexer_kategori, indexer_stok, encoder])
 encoder_model = pipeline_encode.fit(df_engineered)
 df_encoded = encoder_model.transform(df_engineered)
@@ -206,17 +204,17 @@ df_encoded = encoder_model.transform(df_engineered)
 print("Data setelah One-Hot Encoding (5 baris pertama):")
 df_encoded.select("id_produk", "kategori", "kategori_ohe", "status_stok", "status_stok_ohe").show(5, truncate=False)
 
-# 5. FITUR INTERAKSI DAN FITUR LAINNYA
+### 5. FITUR INTERAKSI DAN FITUR LAINNYA
 print("\n5. FITUR TAMBAHAN")
 print("-" * 50)
 
-# a. Fitur interaksi: harga_per_unit_terjual
+#### a. Fitur interaksi: harga_per_unit_terjual
 df_final = df_encoded.withColumn(
     "harga_per_unit_terjual",
     col("harga") / col("terjual")
 )
 
-# b. Kategorisasi rating
+#### b. Kategorisasi rating
 df_final = df_final.withColumn(
     "kategori_rating",
     when(col("rating") >= 4.5, "Sangat Baik")
@@ -228,15 +226,15 @@ df_final = df_final.withColumn(
 print("Data dengan fitur tambahan:")
 df_final.select("id_produk", "nama_produk", "harga", "terjual", "harga_per_unit_terjual", "rating", "kategori_rating").show()
 
-# 6. HASIL AKHIR
+### 6. HASIL AKHIR
 print("\n" + "=" * 70)
 print("HASIL AKHIR: DATAFRAME SETELAH PRA-PEMROSESAN LENGKAP")
 print("=" * 70)
 
-# Tampilkan 10 baris pertama dengan kolom-kolom penting
+#### Tampilkan 10 baris pertama dengan kolom-kolom penting
 print("\nDataFrame akhir (10 baris pertama):")
 
-# Pilih kolom-kolom representatif untuk ditampilkan
+#### Pilih kolom-kolom representatif untuk ditampilkan
 display_cols = [
     "id_produk", "nama_produk", "kategori", "harga", 
     "rating", "terjual", "tgl_rilis", "status_stok",
@@ -245,11 +243,11 @@ display_cols = [
 
 df_final.select(display_cols).show(10, truncate=False)
 
-# Tampilkan skema akhir
+#### Tampilkan skema akhir
 print("\nSkema DataFrame akhir:")
 df_final.printSchema()
 
-# Tampilkan statistik ringkasan
+#### Tampilkan statistik ringkasan
 print("\nStatistik Ringkasan:")
 df_final.select("harga", "rating", "terjual").summary("count", "mean", "stddev", "min", "max").show()
 
