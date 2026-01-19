@@ -3,15 +3,15 @@
 ## IMPOR LIBRARY YANG DIPERLUKAN
 - from pyspark.sql.types import StructType, StructField, IntegerType, StringType, FloatType
 - from pyspark.sql.functions import col, count, when, isnull, mean, lower, to_date, year, month, quarter
-<p> from pyspark.ml.feature import Bucketizer, VectorAssembler, MinMaxScaler, StringIndexer, OneHotEncoder
-from pyspark.ml import Pipeline
-import pyspark.sql.functions as F
+- from pyspark.ml.feature import Bucketizer, VectorAssembler, MinMaxScaler, StringIndexer, OneHotEncoder
+- from pyspark.ml import Pipeline
+- import pyspark.sql.functions as F
 
 ## TUGAS PRA-PEMROSESAN DATA PRODUK ELEKTRONIK 
 
-print("=" * 70)
+<p> print("=" * 70)
 print("TUGAS: PRA-PEMROSESAN DATA PRODUK ELEKTRONIK")
-print("=" * 70)
+print("=" * 70) </p>
 
 ### 1. MEMBUAT DATAFRAME AWAL
 print("\n1. DATASET AWAL:")
